@@ -4,8 +4,6 @@
 #include <time.h>
 #include "mpi.h"
 
-#define N 4
-
 typedef struct {
     float x;
     float y;
@@ -45,8 +43,19 @@ int main(int argc, char* argv[]){
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-    if (N%size != 0)
-        return 1;
+    int N;
+
+    if (rank == 0){
+        printf("Enter amount of points: ");
+        scanf("%d", &N);
+    
+        while (N%size != 0){
+            printf("Please enter value that is devisible by %d: ", size);
+            scanf("%d", &N);
+        }
+    }
+
+    MPI_Bcast(&N, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     MPI_Datatype MPI_POINT;
     MPI_Type_contiguous(2, MPI_FLOAT, &MPI_POINT);
@@ -63,9 +72,13 @@ int main(int argc, char* argv[]){
     if (rank == 0){
         points = get_points(N);
         printf("Points: ");
-        for (int i = 0; i < N; i++)
-            printf("(%.2f, %.2f), ", points[i].x, points[i].y);
-        printf("\n");
+        for (int i = 0; i < N; i++){
+            printf("(%.2f, %.2f)", points[i].x, points[i].y);
+            if (i != N-1)
+                printf(", ");
+            else
+                printf(";\n");
+        }
     }
 
     MPI_Scatter(points, N_PER_PROCESS, MPI_POINT, local_points, N_PER_PROCESS, MPI_POINT, 0, MPI_COMM_WORLD);
