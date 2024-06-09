@@ -4,7 +4,7 @@
 #include "omp.h"
 
 #define N 100
-#define MAX_ITERATIONS 10000
+#define MAX_ITERATIONS 5000
 
 void initialization(double** u){
 
@@ -13,8 +13,8 @@ void initialization(double** u){
             u[i][j] = 0.0;
     
     for (int i = 0; i < N; i++){  //up and bottom boundaries
-        u[i][0] = sin(M_PI*i/N);
-        u[i][N-1] = exp(-i/N)*sin(M_PI*i/N);
+        u[i][0] = sin(M_PI*i*1.0/(N-1));
+        u[i][N-1] = exp(-1.0*i/(N-1))*sin(M_PI*i*1.0/(N-1));
     }
 }
 
@@ -58,8 +58,8 @@ int main(int argc, char* argv[]){
     jacobi_method(u, u_temp);
 
     FILE* file = fopen("output.txt", "w");
-    for (int i = 0; i < N; i++){
-        for (int j = 0; j < N; j++)
+    for (int j = 0; j < N; j++){
+        for (int i = 0; i < N; i++)
             fprintf(file, "%lf ", u[i][j]);
         fprintf(file, "\n");
     }
