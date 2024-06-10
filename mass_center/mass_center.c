@@ -91,14 +91,46 @@ int main(int argc, char* argv[]){
         local_r.y += local_points[i].y;
     }
 
+    char filename[20];
+    snprintf(filename, 20, "proc%d.txt", rank);
+
+    FILE* file = fopen(filename, "w");
+    
+    for (int i = 0; i < N_PER_PROCESS; i++){
+        fprintf(file, "%lf ", local_points[i].x);
+    }
+
+    fprintf(file, "\n");
+
+    for (int i = 0; i < N_PER_PROCESS; i++){
+        fprintf(file, "%lf ", local_points[i].y);
+    }
+
+    fclose(file);
+
+    snprintf(filename, 20, "center_proc%d.txt", rank);
+
+    FILE* file2 = fopen(filename, "w");
+    
+    fprintf(file2, "%lf ", local_r.x/N_PER_PROCESS);
+    fprintf(file2, "\n");
+    fprintf(file2, "%lf ", local_r.y/N_PER_PROCESS);
+
+    fclose(file2);
+
     point center;
 
     MPI_Allreduce(&local_r, &center, 1, MPI_POINT, MPI_POINT_SUM, MPI_COMM_WORLD); 
 
     center.x /= N; center.y /= N;
 
-    if (rank == 0)
+    if (rank == 0){
         printf("Mass center: (%.2f, %.2f)\n", center.x, center.y);
+        FILE* file = fopen("center.txt", "w");
+        fprintf(file, "%lf\n", center.x);
+        fprintf(file, "%lf", center.y);
+        fclose(file);
+    }
     
     for (int i = 0; i < N_PER_PROCESS; i++){
             printf("Distance between %d point and mass center is %.2f\n", i + N_PER_PROCESS*rank, get_distance(center, local_points[i]));
