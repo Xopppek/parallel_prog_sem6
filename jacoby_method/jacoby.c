@@ -4,7 +4,7 @@
 #include "omp.h"
 
 #define N 100
-#define MAX_ITERATIONS 5000
+#define MAX_ITERATIONS 10000
 
 void initialization(double** u){
 
@@ -49,20 +49,32 @@ int main(int argc, char* argv[]){
         u_temp[i] = (double*) malloc(N * sizeof(double));
     }
 
-    int num_threads = 1;
-    printf("num_threads = ");
-    scanf("%d", &num_threads);
-    omp_set_num_threads(num_threads);
+    double time1;
+    for (int threads = 1; threads <= 12; threads++){
+        double num_threads = threads;
 
-    initialization(u);
-    jacobi_method(u, u_temp);
+        omp_set_num_threads(num_threads);
 
-    FILE* file = fopen("output.txt", "w");
-    for (int j = 0; j < N; j++){
-        for (int i = 0; i < N; i++)
-            fprintf(file, "%lf ", u[i][j]);
-        fprintf(file, "\n");
+        double start_time = omp_get_wtime();
+
+        initialization(u);
+        jacobi_method(u, u_temp);
+
+        double end_time = omp_get_wtime();
+        double delta_time = end_time - start_time;
+
+        if (threads == 1)
+            time1 = delta_time;
+        else
+            printf("Ускорение для %d процессов %lf\n", threads, time1/delta_time);
     }
+    
+    FILE* file = fopen("output.txt", "w");
+        for (int j = 0; j < N; j++){
+            for (int i = 0; i < N; i++)
+                fprintf(file, "%lf ", u[i][j]);
+            fprintf(file, "\n");
+        }
     fclose(file);
 
     for (int i = 0; i < N; i++){
